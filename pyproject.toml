@@ -1,0 +1,27 @@
+[project]
+name = "gimnasio-cristian"
+version = "0.1.0"
+description = "Gestor de rutinas de clientes del gimnasio"
+readme = "README.md"
+requires-python = ">=3.13"
+authors = [
+    { name = "PabloSFK", email = "pablosfk@gmail.com" }
+]
+dependencies = [
+  "flet>=0.80.1",
+  "flet-datatable2"
+]
+
+[dependency-groups]
+dev = [
+  "flet[all]>=0.80.1",
+]
+
+[tool.flet]
+org = "com.pablosfk"
+product = "gimnasio-cristian"
+company = "PabloSFK"
+copyright = "Copyright (C) 2026 by PabloSFK"
+
+[tool.flet.app]
+path = "src"

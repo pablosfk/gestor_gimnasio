@@ -1,0 +1,4 @@
+'flet[all]'
+flet-datatable2
+
+#pip install 'flet[all]' --upgrade
