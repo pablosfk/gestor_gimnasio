@@ -2,13 +2,9 @@ import flet as ft
 from .styles import MenuButton
 from .theme import MenuTheme
 from .tables import Tablas
-from .controllers import gym_controller
+from .controllers import gym_controller, gym_state # Importamos el estado y controlador
 from .contexts.service_context import GymServiceContext
 from domain.entities import Rutina, Instructor, Cliente
-
-# Temporal:=====================================
-#from main import gimnasio_servicios
-# ==============================================
 
 @ft.component
 def AppView():
@@ -40,17 +36,17 @@ def AppView():
                     ft.Button(
                         content = "Rutinas",
                         style=MenuButton(),
-                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio,entidad=Rutina)
+                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio, entidad=Rutina)
                         ),
                     ft.Button(
                         content = "Instructores",
                         style=MenuButton(),
-                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio,entidad=Instructor)
+                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio, entidad=Instructor)
                         ),
                     ft.Button(
                         content = "Clientes",
                         style=MenuButton(),
-                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio,entidad=Cliente)
+                        on_click=lambda e: gym_controller.GetTabla(servicio=servicio, entidad=Cliente)
                         ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -59,6 +55,10 @@ def AppView():
 
     @ft.component
     def Body():
+        # AQUÍ OCURRE LA MAGIA: Al leer el estado, nos suscribimos a él.
+        # Flet 0.80+ detecta que este componente depende de 'gym_state.datos_actuales'
+        state, _ = ft.use_state(gym_state) 
+        
         return ft.Container(
             bgcolor=ft.Colors.SURFACE,
             padding=25,
@@ -66,13 +66,12 @@ def AppView():
             alignment=ft.Alignment.CENTER,
             content=ft.Column(
                 controls=[
-                    Tablas()
+                    # Pasamos los datos explícitamente al componente Tablas
+                    Tablas(datos=state.datos_actuales, columnas=state.columnas_actuales) 
                 ],
-                #alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             )
         )
-    
     
     return ft.Container(
         expand=True, # Ocupa todo el espacio que le da la página
@@ -85,6 +84,5 @@ def AppView():
                 Body(),
             ],
             alignment=ft.MainAxisAlignment.CENTER,
-            #horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         ), 
     )

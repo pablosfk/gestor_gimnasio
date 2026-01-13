@@ -1,15 +1,10 @@
 import flet as ft
 import flet_datatable2 as ftd
 from dataclasses import fields
-from .controllers import gym_state, gym_controller
-
-def Tablas():
-    # Observamos los datos
-    datos = gym_state.datos_actuales
-    columnas = gym_state.columnas_actuales
-
-    print(datos)
-    print(columnas)
+@ft.component
+def Tablas(datos: list, columnas: list):
+    # Tablas ahora es un componente puro: recibe datos y los pinta.
+    # No sabe nada del estado global.
 
     # Definimos los estados: la lista de ítems, el índice de la columna y el orden
     sort_index, set_sort_index = ft.use_state(0)
