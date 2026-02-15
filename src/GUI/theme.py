@@ -2,6 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 import flet as ft
+from GUI.assets.themes.theme_manager import ThemeManager
 
 #=============================================================================
 # THEME CONTEXT
@@ -108,6 +109,28 @@ def AppWithTheme(view_builder: Callable[[], ft.Control]): # Recibe la CLASE o FU
     theme_color, set_theme_color = ft.use_state(ft.Colors.TEAL)
     theme_color_name, set_theme_color_name = ft.use_state("Verde\nazulado")
 
+    # 1. Cargamos configuración inicial de APPDATA
+    initial_settings = ThemeManager.load_settings()
+    
+    # 2. Inicializamos los estados con esos valores
+    theme_mode, set_theme_mode = ft.use_state(
+        ft.ThemeMode.DARK if initial_settings["mode"] == "dark" else ft.ThemeMode.LIGHT
+    )
+    theme_color, set_theme_color = ft.use_state(initial_settings["color"])
+    theme_color_name, set_theme_color_name = ft.use_state(initial_settings["color_name"])
+
+    # 3. Efecto para guardar en disco cada vez que algo cambie
+    def persist_theme():
+        ThemeManager.save_settings(
+            mode="dark" if theme_mode == ft.ThemeMode.DARK else "light",
+            color=theme_color,
+            color_name=theme_color_name
+        )
+    
+    # Este efecto se dispara solo cuando cambian estas dependencias
+    ft.use_effect(persist_theme, [theme_mode, theme_color, theme_color_name])
+
+    # Lógica de cambio de modo
     toggle_mode = ft.use_callback(
         lambda: set_theme_mode(
             ft.ThemeMode.DARK if theme_mode == ft.ThemeMode.LIGHT else ft.ThemeMode.LIGHT
@@ -131,8 +154,7 @@ def AppWithTheme(view_builder: Callable[[], ft.Control]): # Recibe la CLASE o FU
     )
 
     def update_theme():
-        if not ft.context.page:
-            return
+        if not ft.context.page: return
         ft.context.page.theme_mode = theme_mode
         ft.context.page.theme = ft.context.page.dark_theme = ft.Theme(color_scheme_seed=theme_color)
         ft.context.page.update()

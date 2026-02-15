@@ -1,7 +1,7 @@
 [project]
-name = "gimnasio"
+name = "Learn Lifting"
 version = "0.1.0"
-description = "Gestor de rutinas de clientes del gimnasio"
+description = "Gestor de rutinas de clientes para gimnasios"
 readme = "README.md"
 requires-python = ">=3.13"
 authors = [
@@ -19,7 +19,7 @@ dev = [
 
 [tool.flet]
 org = "com.pablosfk"
-product = "gimnasio"
+product = "learnlifting"
 company = "PabloSFK"
 copyright = "Copyright (C) 2026 by PabloSFK"
 

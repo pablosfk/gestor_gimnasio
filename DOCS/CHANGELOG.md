@@ -1,6 +1,6 @@
 # Changelog
 
-Todas las modificaciones notables al proyecto **Gimnasio Cristian** se documentarán en este archivo.
+Todas las modificaciones notables al proyecto **Learn Lifting** se documentarán en este archivo.
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto adhiere a versionado semántico.
 
@@ -11,6 +11,17 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - ✏️ Botonera de acciones (Editar/Eliminar) dentro de cada fila de las tablas.
 - 🔎 Implementación de orden ascendente-descendente en `Tablas`.
 - ↕️ Reordenamiento de columnas (orden ascendente/descendente desde la cabecera) — pendiente de integración (`src/GUI/tables.py`).
+- 🧾 Generar las release notes completas en Markdown con la 1.0
+
+## 📦 [0.11.0]
+### Cambiado ✅ 
+#### Cambios menores
+- **Nombre del proyecto**: `Gimnasio Cristian` -> `Learn Lifting`
+- **Cambio de etiqueta en menú**: `Clientes` -> `Usuarios`
+
+### Añadido ✅
+- **Persistencia de tema**: El tema actual se guarda en un archivo JSON en la carpeta de perfil del usuario y se carga al iniciar la aplicación.
+- **Archivos añadidos**: `src/GUI/assets/themes/theme_manager.py`
 
 ## 📦 [0.10.0]
 ### Añadido ✅

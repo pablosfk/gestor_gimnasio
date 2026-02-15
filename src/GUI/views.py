@@ -47,7 +47,7 @@ def AppView():
                         on_click=lambda e: gym_controller.GetTabla(servicio=servicio, entidad=Instructor)
                         ),
                     ft.Button(
-                        content = "Clientes",
+                        content = "Usuarios",
                         style=MenuButton(),
                         on_click=lambda e: gym_controller.GetTabla(servicio=servicio, entidad=Cliente)
                         ),

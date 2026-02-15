@@ -14,12 +14,12 @@ import os
 # será la carpeta de perfil de usuario para asegurar permisos
 def get_db_path():
     app_data = os.getenv("APPDATA") # En Windows: C:\Users\Nombre\AppData\Roaming y se puede ingresar por %APPDATA%
-    base_path = os.path.join(app_data, "GimnasioPSFK")
+    base_path = os.path.join(app_data, "LearnLifting")
     
     if not os.path.exists(base_path):
         os.makedirs(base_path)
         
-    return os.path.join(base_path, "gym.db")
+    return os.path.join(base_path, "learnlifting.db")
 
 # Instanciación e inicialización de la base de datos
 from infrastructure.db_conn import DatabaseConnection as DB
@@ -44,8 +44,8 @@ def main(page: ft.Page):
     page.window.min_height = 600
     page.window.width = 1500
     page.window.height = 800
-    page.theme_mode = ft.ThemeMode.DARK # SYSTEM, LIGHT, DARK
-    page.bgcolor = ft.Colors.PRIMARY_CONTAINER
+    #page.theme_mode = ft.ThemeMode.DARK # SYSTEM, LIGHT, DARK
+    #page.bgcolor = ft.Colors.PRIMARY_CONTAINER
     # Configuramos el idioma a español (Argentina o genérico)
     page.locale_configuration = ft.LocaleConfiguration(
         current_locale=ft.Locale("es", "AR"), # "es" para español, "AR" para Argentina
