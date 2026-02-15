@@ -79,6 +79,7 @@ class Colors(Enum):
     INPUT_FONDO = ft.Colors.SURFACE_CONTAINER_LOW
     INPUT_TEXTO = ft.Colors.ON_SURFACE
     INPUT_BORDE = ft.Colors.OUTLINE
+    INPUT_SUCCESS_BORDE = ft.Colors.GREEN_400
 
     # Input con error
     INPUT_ERROR_BORDE = ft.Colors.ERROR

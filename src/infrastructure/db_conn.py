@@ -11,30 +11,10 @@ class DatabaseConnection:
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
-            # Activamos las foreign keys para blindaje de ciertos campos:
-            cursor.execute("PRAGMA foreign_keys = ON")
-            
-            # --- 1. DEFINICIÓN INICIAL (Para instalaciones nuevas) ---
-            # Creamos la tabla clientes.
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS clientes (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    nombre TEXT NOT NULL,
-                    apellido TEXT NOT NULL,
-                    fecha_fin_rutina TEXT NOT NULL,
-                    instructor_id INTEGER NOT NULL,
-                    rutina_id INTEGER NOT NULL,
-
-                    -- Anclajes de las foreign keys:
-                    FOREIGN KEY (instructor_id) REFERENCES instructores (id),
-                    FOREIGN KEY (rutina_id) REFERENCES rutinas (id)
-                )
-            ''')
 
             # Creamos la tabla instructores.
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS instructores (
+                CREATE TABLE IF NOT EXISTS instructor (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     nombre TEXT NOT NULL,
                     apellido TEXT NOT NULL
@@ -43,10 +23,29 @@ class DatabaseConnection:
 
             # Creamos la tabla rutinas.
             cursor.execute('''
-                CREATE TABLE IF NOT EXISTS rutinas (
+                CREATE TABLE IF NOT EXISTS rutina (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     nombre TEXT NOT NULL,
-                    pdf TEXT NOT NULL
+                    pdf_link TEXT NOT NULL
+                )
+            ''')
+            
+            # --- 1. DEFINICIÓN INICIAL (Para instalaciones nuevas) ---
+            # Creamos la tabla clientes. 
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS cliente (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    nombre TEXT NOT NULL,
+                    apellido TEXT NOT NULL,
+                    fecha_inicio_rutina TEXT NOT NULL,
+                    fecha_fin_rutina TEXT NOT NULL,
+                    instructor_id INTEGER NOT NULL,
+                    rutina_id INTEGER NOT NULL,
+                    ciclo_rutina INTEGER NOT NULL,
+
+                    -- Anclajes de las foreign keys:
+                    FOREIGN KEY (instructor_id) REFERENCES instructor (id),
+                    FOREIGN KEY (rutina_id) REFERENCES rutina (id)
                 )
             ''')
 
@@ -75,9 +74,15 @@ class DatabaseConnection:
 
     @contextmanager
     def get_connection(self):
-        conn = sqlite3.connect(self.db_path)
-        conn.row_factory = sqlite3.Row  # Permite acceder a columnas por nombre
+        conn = None
         try:
+            # Aseguramos que haga la conversión de tipos de datos con "detect_types=sqlite3.PARSE_DECLTYPES"
+            conn = sqlite3.connect(self.db_path, detect_types=sqlite3.PARSE_DECLTYPES)
+            conn.row_factory = sqlite3.Row  # Permite acceder a columnas por nombre
+            
+            # Activamos FK para esta sesión de trabajo
+            conn.execute("PRAGMA foreign_keys = ON")
+
             yield conn # Aquí "presta" la conexión al repositorio
             conn.commit() # Si no hay error, guardamos los cambios
         except sqlite3.Error as e:
@@ -87,4 +92,5 @@ class DatabaseConnection:
             conn.rollback() # Si hay error, deshacemos los cambios
             print(f"Error inesperado al obtener la conexión: {e}")
         finally:
-            conn.close() # Se asegura de cerrar siempre
+            if conn:
+                conn.close() # Se asegura de cerrar siempre

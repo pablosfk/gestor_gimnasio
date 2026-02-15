@@ -12,6 +12,8 @@ class ThemeContextValue:
     mode: ft.ThemeMode
     seed_color: ft.Colors
     toggle_mode: Callable[[], None]
+    color_name: str = ""
+    set_color_name: Callable[[str], None] = lambda name: None
     set_seed_color: Callable[[ft.Colors], None] = lambda color: None
 
 
@@ -21,6 +23,8 @@ ThemeContext = ft.create_context(
         seed_color=ft.Colors.TEAL,
         toggle_mode=lambda: None,
         set_seed_color=lambda color: None,
+        color_name="Verde\nazulado",
+        set_color_name=lambda name: None,
     )
 )
 
@@ -50,7 +54,7 @@ def ThemeModeToggle():
                 on_click=lambda: theme.toggle_mode(),
             ),
             ft.Text(
-                value="Modo claro" if theme.mode == ft.ThemeMode.LIGHT else "Modo oscuro"
+                value="Modo\nclaro" if theme.mode == ft.ThemeMode.LIGHT else "Modo\noscuro"
             ),
         ]
     )
@@ -64,18 +68,18 @@ def ThemeSeedColor():
                 icon=ft.Icons.COLOR_LENS_OUTLINED,
                 tooltip="Cambio de color de tema",
                 items=[
-                    PopupColorItem(color=ft.Colors.DEEP_PURPLE, name="Púrpura profundo"),
+                    PopupColorItem(color=ft.Colors.DEEP_PURPLE, name=f"Púrpura\nprofundo"),
                     PopupColorItem(color=ft.Colors.INDIGO, name="Indigo"),
                     PopupColorItem(color=ft.Colors.BLUE, name="Azul"),
-                    PopupColorItem(color=ft.Colors.TEAL, name="Verde azulado (default)"),
+                    PopupColorItem(color=ft.Colors.TEAL, name="Verde\nazulado"),
                     PopupColorItem(color=ft.Colors.GREEN, name="Verde"),
                     PopupColorItem(color=ft.Colors.YELLOW, name="Amarillo"),
                     PopupColorItem(color=ft.Colors.ORANGE, name="Naranja"),
-                    PopupColorItem(color=ft.Colors.DEEP_ORANGE, name="Naranja profundo"),
+                    PopupColorItem(color=ft.Colors.DEEP_ORANGE, name="Naranja\nprofundo"),
                     PopupColorItem(color=ft.Colors.PINK, name="Rosa"),
                 ],
             ),
-            ft.Text(theme.seed_color.name.replace("_", " ").title()),
+            ft.Text(theme.color_name),
         ]
     )
 
@@ -89,7 +93,7 @@ def PopupColorItem(color: ft.Colors, name: str) -> ft.PopupMenuItem:
                 ft.Text(name),
             ],
         ),
-        on_click=lambda: theme.set_seed_color(color),
+        on_click=lambda _: (theme.set_seed_color(color), theme.set_color_name(name)),
     )
 
 #=============================================================================
@@ -97,11 +101,12 @@ def PopupColorItem(color: ft.Colors, name: str) -> ft.PopupMenuItem:
 #=============================================================================
 
 # Envolvemos `AppView` con un proveedor de tema para que los componentes que usan
-# `ft.use_context(ThemeContext)` reciban `toggle_mode` y `set_seed_color` funcionales.
+# `ft.use_context(ThemeContext)` reciban `toggle_mode`, `set_seed_color` y `set_color_name` funcionales.
 @ft.component
 def AppWithTheme(view_builder: Callable[[], ft.Control]): # Recibe la CLASE o FUNCIÓN, no la instancia
     theme_mode, set_theme_mode = ft.use_state(ft.ThemeMode.DARK)
     theme_color, set_theme_color = ft.use_state(ft.Colors.TEAL)
+    theme_color_name, set_theme_color_name = ft.use_state("Verde\nazulado")
 
     toggle_mode = ft.use_callback(
         lambda: set_theme_mode(
@@ -111,6 +116,7 @@ def AppWithTheme(view_builder: Callable[[], ft.Control]): # Recibe la CLASE o FU
     )
 
     set_seed_color = ft.use_callback(lambda color: set_theme_color(color), dependencies=[theme_color])
+    set_color_name = ft.use_callback(lambda name: set_theme_color_name(name), dependencies=[theme_color_name])
 
     theme_value = ft.use_memo(
         lambda: ThemeContextValue(
@@ -118,8 +124,10 @@ def AppWithTheme(view_builder: Callable[[], ft.Control]): # Recibe la CLASE o FU
             seed_color=theme_color,
             toggle_mode=toggle_mode,
             set_seed_color=set_seed_color,
+            color_name=theme_color_name,
+            set_color_name=set_color_name,
         ),
-        dependencies=[theme_mode, theme_color, toggle_mode, set_seed_color],
+        dependencies=[theme_mode, theme_color, toggle_mode, set_seed_color, theme_color_name, set_color_name],
     )
 
     def update_theme():

@@ -1,4 +1,4 @@
-'flet[all]'
+flet[all]
 flet-datatable2
 
-#pip install 'flet[all]' --upgrade
+# Para actualizar todo: pip install -r requirements.txt --upgrade

@@ -134,7 +134,7 @@ class TestAñadirEntidades:
         """Test: Si se pasa un objeto que no es Rutina/Instructor/Cliente, lanza NegocioError"""
         objeto_invalido = {"tipo": "invalido"}
         
-        with pytest.raises(NegocioError, match="Entidad no valida"):
+        with pytest.raises(NegocioError, match="Entidad no válida"):
             servicio.añadir(objeto_invalido)
     
     def test_añadir_cliente_con_instructor_y_rutina_none(self, servicio, mock_instructor_repo, mock_rutina_repo):
@@ -191,7 +191,7 @@ class TestBuscarEntidades:
     
     def test_buscar_por_id_entidad_invalida(self, servicio):
         """Test: Buscar una entidad inválida lanza NegocioError"""
-        with pytest.raises(NegocioError, match="Entidad no valida"):
+        with pytest.raises(NegocioError, match="Entidad no válida"):
             servicio.buscar_por_id({"tipo": "invalido"})
     
     def test_buscar_todos_rutinas(self, servicio, mock_rutina_repo):
@@ -236,7 +236,7 @@ class TestBuscarEntidades:
     
     def test_buscar_todos_entidad_invalida(self, servicio):
         """Test: Buscar todos con entidad inválida lanza NegocioError"""
-        with pytest.raises(NegocioError, match="Entidad no valida"):
+        with pytest.raises(NegocioError, match="Entidad no válida"):
             servicio.buscar_todos("string_invalido")
     
     def test_buscar_por_id_no_encontrado(self, servicio, mock_cliente_repo):
@@ -276,7 +276,7 @@ class TestActualizarEntidades:
     
     def test_actualizar_entidad_invalida(self, servicio):
         """Test: Actualizar una entidad inválida lanza NegocioError"""
-        with pytest.raises(NegocioError, match="Entidad no valida"):
+        with pytest.raises(NegocioError, match="Entidad no válida"):
             servicio.actualizar(12345)
     
     def test_actualizar_rutina_no_existente(self, servicio, mock_rutina_repo):
@@ -316,7 +316,7 @@ class TestEliminarEntidades:
     
     def test_eliminar_entidad_invalida(self, servicio):
         """Test: Eliminar una entidad inválida lanza NegocioError"""
-        with pytest.raises(NegocioError, match="Entidad no valida"):
+        with pytest.raises(NegocioError, match="Entidad no válida"):
             servicio.eliminar(None)
     
     def test_eliminar_rutina_en_uso_propaga_excepcion(self, servicio, mock_rutina_repo):

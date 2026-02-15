@@ -8,30 +8,49 @@ from config import Config
 from GUI.theme import AppWithTheme
 from GUI.views import AppView
 from GUI.contexts.service_context import GymServiceContext
+import os
 
-# Inicialización e instanciación de la base de datos
+# Obtenemos la ruta para la base de datos, 
+# será la carpeta de perfil de usuario para asegurar permisos
+def get_db_path():
+    app_data = os.getenv("APPDATA") # En Windows: C:\Users\Nombre\AppData\Roaming y se puede ingresar por %APPDATA%
+    base_path = os.path.join(app_data, "GimnasioPSFK")
+    
+    if not os.path.exists(base_path):
+        os.makedirs(base_path)
+        
+    return os.path.join(base_path, "gym.db")
+
+# Instanciación e inicialización de la base de datos
 from infrastructure.db_conn import DatabaseConnection as DB
-db_manager = DB(Config.DB_PATH)
+db_path = get_db_path()
+db_manager = DB(db_path)
 db_manager.init_db()
 
 # Instanciación del repositorio
-from infrastructure.sqlite3_repo import SQLite3InstructorRepository, SQLite3RutinaRepository, SQLite3ClienteRepository
-instructor_repo = SQLite3InstructorRepository(db_manager)
-rutina_repo = SQLite3RutinaRepository(db_manager)
-cliente_repo = SQLite3ClienteRepository(db_manager)
+from infrastructure.sqlite3_repo import SQLite3Repository
+repo = SQLite3Repository(db_manager)
 
 # Instanciación del servicio
 from application.services import GymService
-gimnasio_servicios = GymService(cliente_repo=cliente_repo, instructor_repo=instructor_repo, rutina_repo=rutina_repo)
+gimnasio_servicios = GymService(repositorio=repo)
 
+# Definición de la función principal
 def main(page: ft.Page):
     window = ft.Window()
     # --- Configuración de la página ---
     page.padding = 0
     page.window.min_width = 800
     page.window.min_height = 600
+    page.window.width = 1500
+    page.window.height = 800
     page.theme_mode = ft.ThemeMode.DARK # SYSTEM, LIGHT, DARK
     page.bgcolor = ft.Colors.PRIMARY_CONTAINER
+    # Configuramos el idioma a español (Argentina o genérico)
+    page.locale_configuration = ft.LocaleConfiguration(
+        current_locale=ft.Locale("es", "AR"), # "es" para español, "AR" para Argentina
+        supported_locales=[ft.Locale("es", "AR"), ft.Locale("en", "US")],
+    )
     
     # --- Renderizado ---
     # definimos un wrapper para inyectar el servicio
