@@ -6,25 +6,7 @@ from dataclasses import dataclass, field, fields, asdict
 from typing import Type, get_type_hints
 from datetime import datetime
 from GUI.assets.themes.colors import Colors
-
-# Estas son DTO (Data transfer object)
-# Son objetos que se usan para transferir datos entre capas
-# Serán encargados de darle el formato deseado para la impresión en pantalla
-
-@dataclass
-class ClienteViewDTO:
-    Nombre_y_Apellido: str
-    Rutina: str
-    Ciclo: int
-    Fechas: str
-    QR: str = "🔎"
-    Edicion: str = "🛠️"
-
-@dataclass
-class RutinaViewDTO:
-    ID: int
-    Nombre: str
-    PDF: str
+from GUI.DTOs import ClienteViewDTO, RutinaViewDTO, InstructorViewDTO
 
 @ft.observable
 @dataclass
@@ -128,8 +110,13 @@ class GymController:
 
                 elif entidad == Rutina:
                     # RE-EMPAQUETADO PARA RUTINAS (para mostrar el ID)
-                    self.state.datos_actuales = [RutinaViewDTO(ID=r.id, Nombre=r.nombre, PDF=r.pdf_link) for r in datos_db]
+                    self.state.datos_actuales = [RutinaViewDTO(ID=r.id, Nombre=r.nombre) for r in datos_db]
                     self.state.columnas_actuales = {f.name: f.type for f in fields(RutinaViewDTO)}
+
+                elif entidad == Instructor:
+                    # RE-EMPAQUETADO PARA INSTRUCTORES
+                    self.state.datos_actuales = [InstructorViewDTO(Nombre_y_Apellido=f"{i.nombre} {i.apellido}") for i in datos_db]
+                    self.state.columnas_actuales = {f.name: f.type for f in fields(InstructorViewDTO)}
             
                 else:
                     self.state.datos_actuales = datos_db
@@ -263,6 +250,7 @@ class GymController:
                         data=campo,
                         on_change=lambda e: self.limpiar_error(e)
                         ))
+                
                 else:
                     fields_box.append(ft.TextField(
                         label=campo.replace("_", " ").title(),

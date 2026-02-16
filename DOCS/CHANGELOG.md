@@ -13,6 +13,10 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 - ↕️ Reordenamiento de columnas (orden ascendente/descendente desde la cabecera) — pendiente de integración (`src/GUI/tables.py`).
 - 🧾 Generar las release notes completas en Markdown con la 1.0
 
+## 📦 [0.12.0]
+### Añadido ✅
+- **Creación DTOs.py**: Trasladadas `ClienteViewDTO`, `InstructorViewDTO` y `RutinaViewDTO` a DTOs.py para mejor estructura. 
+
 ## 📦 [0.11.0]
 ### Cambiado ✅ 
 #### Cambios menores
@@ -80,4 +84,3 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 ### Hito: "Domain Definition" 🏷️
 - 📚 **Definición de Entidades Clave**: `Cliente`, `Rutina`, `Instructor` y diccionario dinámico `ENTIDADES` para reflexión (`src/domain/entities.py`).
 - 🗂️ **Estructura de carpetas basada en DDD** (Domain, Application, Infrastructure, GUI).
-

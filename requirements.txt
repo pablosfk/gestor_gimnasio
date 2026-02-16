@@ -1,4 +1,5 @@
 flet[all]
 flet-datatable2
+qrcode[pil]
 
 # Para actualizar todo: pip install -r requirements.txt --upgrade

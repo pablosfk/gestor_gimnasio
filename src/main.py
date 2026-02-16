@@ -9,6 +9,26 @@ from GUI.theme import AppWithTheme
 from GUI.views import AppView
 from GUI.contexts.service_context import GymServiceContext
 import os
+import tomllib
+from pathlib import Path
+
+#=============================================================================
+# METADATOS DEL PROYECTO
+#=============================================================================
+def get_project_metadata():
+    # Buscamos el archivo pyproject.toml en la raíz del proyecto
+    toml_path = Path(__file__).parent.parent / "pyproject.toml" 
+    
+    try:
+        with open(toml_path, "rb") as f:
+            data = tomllib.load(f)
+            return data["project"]["name"], data["project"]["version"]
+    except (FileNotFoundError, KeyError):
+        # Valores por defecto en caso de error
+        return "App", "0.0.0"
+
+# Cargamos los datos
+APP_NAME, VERSION = get_project_metadata()
 
 # Obtenemos la ruta para la base de datos, 
 # será la carpeta de perfil de usuario para asegurar permisos
@@ -38,6 +58,8 @@ gimnasio_servicios = GymService(repositorio=repo)
 # Definición de la función principal
 def main(page: ft.Page):
     window = ft.Window()
+    # Configuramos el título usando los datos del TOML
+    page.title = f"{APP_NAME} v{VERSION}"
     # --- Configuración de la página ---
     page.padding = 0
     page.window.min_width = 800
