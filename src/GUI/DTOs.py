@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 @dataclass
 class RutinaViewDTO:
+    id: int
     ID: int
     Nombre: str
     QR: str = "🔎"
@@ -13,11 +14,13 @@ class RutinaViewDTO:
 
 @dataclass
 class InstructorViewDTO:
+    id: int
     Nombre_y_Apellido: str
     Acciones: str = "🛠️ 🗑️" # Placeholder que luego serán botones reales
 
 @dataclass
 class ClienteViewDTO:
+    id: int
     Nombre_y_Apellido: str
     Rutina: str
     Ciclo: str

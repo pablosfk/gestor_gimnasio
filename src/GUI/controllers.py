@@ -7,6 +7,9 @@ from typing import Type, get_type_hints
 from datetime import datetime
 from GUI.assets.themes.colors import Colors
 from GUI.DTOs import ClienteViewDTO, RutinaViewDTO, InstructorViewDTO
+import qrcode
+import io
+import base64
 
 @ft.observable
 @dataclass
@@ -32,6 +35,7 @@ class GymController:
 
         for c in clientes_crudos:
             lista_formateada.append({
+                "id": c.id,
                 "Nombre y Apellido": f"{c.nombre} {c.apellido}",
                 "Rutina": dict_rutinas.get(c.rutina_id, "N/A"),
                 "Ciclo": str(c.ciclo_rutina),
@@ -40,6 +44,84 @@ class GymController:
                 "Edición": "🛠️" 
             })
         return lista_formateada
+
+    def mostrar_qr(self, servicio, entidad_tipo, id_registro):
+        """Genera y muestra un QR basado en el pdf_link de la rutina."""
+        url = None
+        
+        # 1. Obtener la URL dependiendo de la entidad
+        try:
+            if entidad_tipo == Rutina:
+                rutina = servicio.buscar_por_id(Rutina, id_registro)
+                url = rutina.pdf_link
+            elif entidad_tipo == Cliente:
+                cliente = servicio.buscar_por_id(Cliente, id_registro)
+                if cliente.rutina_id:
+                    rutina = servicio.buscar_por_id(Rutina, cliente.rutina_id)
+                    url = rutina.pdf_link
+        except Exception as e:
+            print(f"Error recuperando link para QR: {e}")
+
+        if not url:
+            # Mostrar un snackbar o error si no hay link
+            snack = ft.SnackBar(ft.Text("No hay enlace PDF asociado para generar QR"))
+            ft.context.page.overlay.append(snack)
+            snack.open = True
+            ft.context.page.update()
+            return
+
+        # 2. Generar QR en memoria
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(url)
+        qr.make(fit=True)
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # 3. Convertir a Base64 para Flet
+        buffered = io.BytesIO()
+        img.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+
+        img_control = ft.Image(src=f"data:image/png;base64,{img_str}", width=300, height=300)
+        
+        dlg = ft.AlertDialog(
+            title=ft.Text("Escanea tu Rutina"),
+            content=img_control,
+            actions=[ft.TextButton("Cerrar", on_click=lambda e: setattr(dlg, "open", False) or ft.context.page.update())],
+        )
+        ft.context.page.show_dialog(dlg)
+
+    def eliminar_registro(self, servicio, entidad_tipo, id_registro):
+        try:
+            # Buscamos el objeto real primero para validar reglas de negocio si las hubiera
+            entidad = servicio.buscar_por_id(entidad_tipo, id_registro)
+            servicio.eliminar(entidad)
+            
+            # Refrescar tabla
+            self.GetTabla(servicio, entidad_tipo)
+            
+            snack = ft.SnackBar(ft.Text(f"Registro eliminado correctamente"))
+            ft.context.page.overlay.append(snack)
+            snack.open = True
+            ft.context.page.update()
+            
+        except Exception as e:
+            print(f"Error al eliminar: {e}")
+
+    def preparar_edicion(self, servicio, entidad_tipo, id_registro):
+        """
+        1. Busca la entidad.
+        2. Rellena los campos del formulario (add_fields).
+        NOTE: Esto requiere conectar con la vista, por ahora lo dejamos como placeholder
+        """
+        try:
+            entidad = servicio.buscar_por_id(entidad_tipo, id_registro)
+            # Lógica futura para rellenar campos
+            snack = ft.SnackBar(ft.Text(f"Edición para ID {id_registro} pendiente de implementación visual"))
+            ft.context.page.overlay.append(snack)
+            snack.open = True
+            ft.context.page.update()
+        except Exception as e:
+            print(f"Error al preparar edición: {e}")
 
     def limpiar_error(self, e):
         # 1. La lógica para detectar si es fecha por el diccionario de tipos
@@ -98,6 +180,7 @@ class GymController:
                         f_fin = datetime.strptime(c.fecha_fin_rutina, '%Y-%m-%d').strftime('%d/%m/%y')
                     
                         nuevos_datos.append(ClienteViewDTO(
+                            id=c.id,
                             Nombre_y_Apellido=f"{c.nombre} {c.apellido}",
                             Rutina=dict_rutinas.get(c.rutina_id, "N/A"),
                             Ciclo=c.ciclo_rutina,
@@ -110,12 +193,12 @@ class GymController:
 
                 elif entidad == Rutina:
                     # RE-EMPAQUETADO PARA RUTINAS (para mostrar el ID)
-                    self.state.datos_actuales = [RutinaViewDTO(ID=r.id, Nombre=r.nombre) for r in datos_db]
+                    self.state.datos_actuales = [RutinaViewDTO(id=r.id, ID=r.id, Nombre=r.nombre) for r in datos_db]
                     self.state.columnas_actuales = {f.name: f.type for f in fields(RutinaViewDTO)}
 
                 elif entidad == Instructor:
                     # RE-EMPAQUETADO PARA INSTRUCTORES
-                    self.state.datos_actuales = [InstructorViewDTO(Nombre_y_Apellido=f"{i.nombre} {i.apellido}") for i in datos_db]
+                    self.state.datos_actuales = [InstructorViewDTO(id=i.id, Nombre_y_Apellido=f"{i.nombre} {i.apellido}") for i in datos_db]
                     self.state.columnas_actuales = {f.name: f.type for f in fields(InstructorViewDTO)}
             
                 else:

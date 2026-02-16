@@ -138,6 +138,19 @@ def AppView():
             ),
         )
 
+        # Callbacks para la tabla
+        def call_qr(id_registro):
+            entidad_tipo = ENTIDADES[state.tabla_actual]
+            gym_controller.mostrar_qr(servicio, entidad_tipo, id_registro)
+
+        def call_delete(id_registro):
+            entidad_tipo = ENTIDADES[state.tabla_actual]
+            gym_controller.eliminar_registro(servicio, entidad_tipo, id_registro)
+
+        def call_edit(id_registro):
+            entidad_tipo = ENTIDADES[state.tabla_actual]
+            gym_controller.preparar_edicion(servicio, entidad_tipo, id_registro)
+
         return ft.Container(
             bgcolor=ft.Colors.SURFACE,
             padding=25,
@@ -145,7 +158,13 @@ def AppView():
             alignment=ft.Alignment.CENTER,
             content=ft.Column(
                 controls=[
-                    Tablas(datos=state.datos_actuales, columnas=state.columnas_actuales),
+                    Tablas(
+                        datos=state.datos_actuales, 
+                        columnas=state.columnas_actuales,
+                        on_qr=call_qr,
+                        on_delete=call_delete,
+                        on_edit=call_edit
+                    ),
                     ft.Container(
                         content=ft.IconButton(
                             icon=ft.Icons.ADD_CIRCLE_OUTLINE, 

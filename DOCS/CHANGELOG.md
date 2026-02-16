@@ -15,7 +15,9 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## 📦 [0.12.0]
 ### Añadido ✅
-- **Creación DTOs.py**: Trasladadas `ClienteViewDTO`, `InstructorViewDTO` y `RutinaViewDTO` a DTOs.py para mejor estructura. 
+- **Creación DTOs.py**: Trasladadas `ClienteViewDTO`, `InstructorViewDTO` y `RutinaViewDTO` a DTOs.py para mejor estructura.
+- **Generación de QR**: Implementada la generación de códigos QR visuales a partir de enlaces PDF almacenados en las Rutinas, accesible mediante un ícono de lupa en la tabla.
+- **Tabla de Acciones**: Reestructuración de la tabla principal para incluir una columna fija de "Acciones" (Editar/Eliminar) y renderizado condicional de íconos basado en los DTOs. 
 
 ## 📦 [0.11.0]
 ### Cambiado ✅ 
