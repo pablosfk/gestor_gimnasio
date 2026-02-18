@@ -24,6 +24,7 @@ class ClienteViewDTO:
     Nombre_y_Apellido: str
     Rutina: str
     Ciclo: str
+    Instructor: str
     Fechas: str
     QR: str = "🔎"
     Acciones: str = "🛠️ 🗑️" # Placeholder que luego serán botones reales

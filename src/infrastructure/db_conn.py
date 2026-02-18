@@ -85,12 +85,10 @@ class DatabaseConnection:
 
             yield conn # Aquí "presta" la conexión al repositorio
             conn.commit() # Si no hay error, guardamos los cambios
-        except sqlite3.Error as e:
-            conn.rollback() # Si hay error, deshacemos los cambios
-            print(f"Error SQLite3 al obtener la conexión: {e}")
         except Exception as e:
-            conn.rollback() # Si hay error, deshacemos los cambios
-            print(f"Error inesperado al obtener la conexión: {e}")
+            if conn:
+                conn.rollback() # Si hay error, deshacemos los cambios
+            raise # Re-lanzamos para que las capas superiores manejen el error
         finally:
             if conn:
                 conn.close() # Se asegura de cerrar siempre

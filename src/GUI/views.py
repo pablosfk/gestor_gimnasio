@@ -143,9 +143,9 @@ def AppView():
             entidad_tipo = ENTIDADES[state.tabla_actual]
             gym_controller.mostrar_qr(servicio, entidad_tipo, id_registro)
 
-        def call_delete(id_registro):
+        def call_delete(id_registro, nombre_registro):
             entidad_tipo = ENTIDADES[state.tabla_actual]
-            gym_controller.eliminar_registro(servicio, entidad_tipo, id_registro)
+            gym_controller.eliminar_registro(servicio, entidad_tipo, id_registro, nombre_registro)
 
         def call_edit(id_registro):
             entidad_tipo = ENTIDADES[state.tabla_actual]

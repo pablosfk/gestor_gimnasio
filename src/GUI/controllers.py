@@ -90,22 +90,54 @@ class GymController:
         )
         ft.context.page.show_dialog(dlg)
 
-    def eliminar_registro(self, servicio, entidad_tipo, id_registro):
-        try:
-            # Buscamos el objeto real primero para validar reglas de negocio si las hubiera
-            entidad = servicio.buscar_por_id(entidad_tipo, id_registro)
-            servicio.eliminar(entidad)
+    def eliminar_registro(self, servicio, entidad_tipo, id_registro, nombre_registro):
+        def ejecutar_eliminacion(e):
+            """Callback que se ejecuta al confirmar la eliminación."""
+            # Cerramos el diálogo primero
+            dlg_confirmacion.open = False
+            ft.context.page.update()
+
+            eliminado = False
+            mensaje = "No se pudo eliminar el registro"
+            try:
+                entidad = servicio.buscar_por_id(entidad_tipo, id_registro)
+                servicio.eliminar(entidad)
+                eliminado = True
+                mensaje = "Registro eliminado correctamente"
+            except Exception as ex:
+                mensaje = str(ex) if str(ex) else "No se pudo eliminar el registro"
+                print(f"Error al eliminar: {ex}")
             
-            # Refrescar tabla
-            self.GetTabla(servicio, entidad_tipo)
+            # Refrescar tabla SOLO si la eliminación fue exitosa
+            if eliminado:
+                try:
+                    self.GetTabla(servicio, entidad_tipo)
+                except Exception as ex:
+                    print(f"Error al refrescar tabla: {ex}")
             
-            snack = ft.SnackBar(ft.Text(f"Registro eliminado correctamente"))
+            # Mostrar feedback
+            snack = ft.SnackBar(
+                ft.Text(mensaje, color=ft.Colors.WHITE),
+                bgcolor=ft.Colors.GREEN_700 if eliminado else ft.Colors.RED_700
+            )
             ft.context.page.overlay.append(snack)
             snack.open = True
             ft.context.page.update()
-            
-        except Exception as e:
-            print(f"Error al eliminar: {e}")
+
+        def cancelar(e):
+            dlg_confirmacion.open = False
+            ft.context.page.update()
+
+        dlg_confirmacion = ft.AlertDialog(
+            title=ft.Text("Confirmar eliminación"),
+            content=ft.Text(f"¿Está seguro de eliminar el registro \"{nombre_registro}\"?"),
+            actions=[
+                ft.TextButton("Cancelar", on_click=cancelar),
+                ft.TextButton("Eliminar", on_click=ejecutar_eliminacion,
+                    style=ft.ButtonStyle(color=ft.Colors.RED)),
+            ],
+        )
+        ft.context.page.show_dialog(dlg_confirmacion)
 
     def preparar_edicion(self, servicio, entidad_tipo, id_registro):
         """
@@ -173,6 +205,7 @@ class GymController:
                 if entidad == Cliente:
                     # RE-EMPAQUETADO PARA CLIENTES
                     dict_rutinas = {r.id: f"{r.nombre} (id:{r.id})" for r in self.lista_rutinas}
+                    dict_instructores = {i.id: f"{i.nombre} {i.apellido}" for i in self.lista_instructores}
                     
                     nuevos_datos = []
                     for c in datos_db:
@@ -183,6 +216,7 @@ class GymController:
                             id=c.id,
                             Nombre_y_Apellido=f"{c.nombre} {c.apellido}",
                             Rutina=dict_rutinas.get(c.rutina_id, "N/A"),
+                            Instructor=dict_instructores.get(c.instructor_id, "N/A"),
                             Ciclo=c.ciclo_rutina,
                             Fechas=f"{f_inicio} - {f_fin}"
                         ))

@@ -6,12 +6,13 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/
 
 ## [Unreleased] - (Roadmap a v1.0.0) 🆕
 ### Pendiente ⚠️
-- 📌 Implementación de popups modales para Creación/Edición de entidades.
-- 🔔 Sistema de notificaciones (SnackBars) para feedback de usuario (éxito/error).
-- ✏️ Botonera de acciones (Editar/Eliminar) dentro de cada fila de las tablas.
-- 🔎 Implementación de orden ascendente-descendente en `Tablas`.
-- ↕️ Reordenamiento de columnas (orden ascendente/descendente desde la cabecera) — pendiente de integración (`src/GUI/tables.py`).
+- 📌 Implementación de popups modales para Edición de entidades.
 - 🧾 Generar las release notes completas en Markdown con la 1.0
+
+## 📦 [0.13.0]
+### Añadido ✅
+- 📊 **Ordenamiento de columnas**: Implementado el ordenamiento ascendente/descendente en las columnas ordenables de la tabla. Al hacer clic en la cabecera, los datos se reordenan por ese campo (numérico o alfabético) (`src/GUI/tables.py`).
+- **Eliminación de entradas**: Función que abre diálogo de confirmación y ejecuta `servicio.eliminar()`, no permitiendo la eliminación de rutinas o instructores usados actualmente por algún cliente.
 
 ## 📦 [0.12.0]
 ### Añadido ✅

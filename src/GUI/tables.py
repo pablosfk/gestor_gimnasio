@@ -21,17 +21,57 @@ def Tablas(datos: list, columnas: dict, on_qr=None, on_edit=None, on_delete=None
             bgcolor=ft.Colors.SURFACE,
         )
 
+    # Obtener lista de nombres de columnas (sin "id")
+    nombres_columnas = [nombre for nombre in columnas.keys() if nombre != "id"]
+
     def sort_column(e: ft.DataColumnSortEvent):
-        # Aquí puedes implementar lógica de ordenamiento local si quieres,
-        # pero para simplificar y ver si funciona, actualizamos el estado del hook:
         set_sort_index(e.column_index)
         set_ascending(e.ascending)
-        # Nota: Si quieres que el orden persista, el sort debería hacerse sobre 'datos'
 
     # GENERAR FILAS DINÁMICAS (Accediendo a los atributos del objeto)
     data_rows = []
-    if datos:
-        for dato in datos:
+    
+    # Ordenar datos si es necesario
+    datos_para_mostrar = datos
+    if sort_index >= 0 and sort_index < len(nombres_columnas):
+        nombre_columna = nombres_columnas[sort_index]
+        
+        def get_sort_key(obj):
+            valor = getattr(obj, nombre_columna, "")
+            if valor is None:
+                return ""
+            
+            valor_str = str(valor)
+            
+            # Si contiene " - ", tomar solo la primera parte (para fechas de inicio-fin)
+            if " - " in valor_str:
+                valor_str = valor_str.split(" - ")[0]
+            
+            # Si contiene "/", probablemente sea una fecha (DD/MM/YY)
+            # Convertir a YYYYMMDD para ordenamiento correcto
+            if "/" in valor_str:
+                try:
+                    partes = valor_str.split("/")
+                    if len(partes) == 3:
+                        dia, mes, año = partes
+                        # Convertir año de 2 dígitos a 4 dígitos
+                        año_completo = "20" + año if len(año) == 2 else año
+                        # Retornar YYYYMMDD para ordenamiento correcto
+                        return f"{año_completo}{mes.zfill(2)}{dia.zfill(2)}"
+                except:
+                    pass  # Si falla, tratarlo como string normal
+            
+            # Para strings, hacer lowercase para ordenamiento case-insensitive
+            return valor_str.lower()
+        
+        datos_para_mostrar = sorted(
+            datos,
+            key=get_sort_key,
+            reverse=not ascending
+        )
+    
+    if datos_para_mostrar:
+        for dato in datos_para_mostrar:
             d_dict = asdict(dato)
             # Generamos la lista de celdas con list comprehension
             celdas = []
@@ -45,12 +85,14 @@ def Tablas(datos: list, columnas: dict, on_qr=None, on_edit=None, on_delete=None
                 content = None
                 
                 if k == "QR":
-                     content = ft.IconButton(
-                        icon=ft.Icons.QR_CODE_2,
-                        tooltip="Ver Rutina",
-                        icon_color=ft.Colors.PRIMARY,
-                        on_click=lambda e, d=dato: on_qr(d.id) if on_qr else None
-                    )
+                    content = ft.Row([
+                        ft.IconButton(
+                            icon=ft.Icons.QR_CODE_2,
+                            icon_color=ft.Colors.PRIMARY,
+                            tooltip="Ver Rutina",
+                            on_click=lambda e, d=dato: on_qr(d.id) if on_qr else None
+                        )
+                    ], spacing=0, alignment=ft.MainAxisAlignment.CENTER)
                 elif k == "Acciones":
                     content = ft.Row([
                         ft.IconButton(
@@ -63,11 +105,16 @@ def Tablas(datos: list, columnas: dict, on_qr=None, on_edit=None, on_delete=None
                             icon=ft.Icons.DELETE, 
                             icon_color=ft.Colors.RED,
                             tooltip="Eliminar",
-                            on_click=lambda e, d=dato: on_delete(d.id) if on_delete else None
+                            on_click=lambda e, d=dato: on_delete(
+                                d.id, 
+                                getattr(d, 'Nombre_y_Apellido', None) or getattr(d, 'Nombre', None) or f"ID {d.id}"
+                            ) if on_delete else None
                         ),
-                    ], spacing=0, alignment=ft.MainAxisAlignment.END)
+                    ], spacing=0, alignment=ft.MainAxisAlignment.CENTER)
                 else:
-                    content = ft.Text(str(v))
+                    content = ft.Row([
+                        ft.Text(value=str(v), text_align="center")
+                    ], spacing = 0, alignment=ft.MainAxisAlignment.CENTER)
                 
                 celdas.append(ft.DataCell(content))
 
@@ -76,24 +123,45 @@ def Tablas(datos: list, columnas: dict, on_qr=None, on_edit=None, on_delete=None
 
     # 4. GENERAR COLUMNAS DINÁMICAS
     columnas_formateadas = []
+    columnas_ordenables = ["Nombre", "Ciclo", "ID", "Nombre_y_Apellido", "Rutina", "Fechas", "Instructor"]
     for nombre in columnas:
         if nombre == "id":
             continue
             
-        if nombre == "Acciones":
+        if nombre == "QR":
+            col = ftd.DataColumn2(
+                label=ft.Text(value="QR", text_align=ft.TextAlign.CENTER),
+                fixed_width=60,
+                numeric=False,
+                heading_row_alignment=ft.MainAxisAlignment.CENTER,
+            )
+        elif nombre == "ID":
+            col = ftd.DataColumn2(
+                label=ft.Text(value="ID", text_align=ft.TextAlign.CENTER),
+                fixed_width=40,
+                numeric=False,
+                heading_row_alignment=ft.MainAxisAlignment.CENTER,
+            )
+        elif nombre == "Acciones":
             # Columna especial de acciones: Ancho fijo y al final
             col = ftd.DataColumn2(
-                label=ft.Text("Acciones"),
+                label=ft.Text(value="Acciones", text_align=ft.TextAlign.CENTER),
                 fixed_width=120,
                 numeric=False, 
+                heading_row_alignment=ft.MainAxisAlignment.CENTER,
             )
         else:
             col = ftd.DataColumn2(
-                label=ft.Text(nombre.replace("_id", "").replace("_", " ").title()), 
-                size=ftd.DataColumnSize.L, 
-                on_sort=sort_column
+                label=ft.Text(value=nombre.replace("_id", "").replace("_", " ").title(), text_align=ft.TextAlign.CENTER), 
+                size=ftd.DataColumnSize.L,
+                on_sort=sort_column if nombre in columnas_ordenables else None,
+                numeric = False,
+                heading_row_alignment=ft.MainAxisAlignment.CENTER,
             )
         columnas_formateadas.append(col)
+
+    # Validar que sort_index sea válido para esta tabla
+    effective_sort_index = sort_index if (sort_index >= 0 and sort_index < len(columnas_formateadas)) else 0
 
     return ftd.DataTable2(
         empty = ft.Text("No hay registros actualmente"),
@@ -101,8 +169,10 @@ def Tablas(datos: list, columnas: dict, on_qr=None, on_edit=None, on_delete=None
         rows=data_rows,
         show_checkbox_column=True,
         expand=True,
-        sort_column_index=sort_index,
+        column_spacing = 0,
+        sort_column_index=effective_sort_index,
         sort_ascending=ascending,
         heading_row_color=ft.Colors.SECONDARY_CONTAINER,
         min_width=600,
+        vertical_lines=ft.BorderSide(1, ft.Colors.OUTLINE_VARIANT),
     )
