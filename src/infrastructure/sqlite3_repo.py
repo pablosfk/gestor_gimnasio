@@ -50,6 +50,8 @@ class SQLite3Repository(Repository):
                 if row:
                     # Devolvemos el objeto con los datos de la fila aprovechando el constructor de la dataclass.
                     return class_entity(**row)
+                else:
+                    return None
 
                 raise RegistroNoEncontrado(f"No existe un registro con ID {entity_id}")
             
@@ -64,15 +66,18 @@ class SQLite3Repository(Repository):
     def get_all(self, class_entity: Type[ENTIDADES]) -> list[ENTIDADES]: # Este "entity" solo es la clase, no tiene datos. Por eso ponemos Type[ENTIDADES]
         tabla = class_entity.__name__.lower()
         query = f"SELECT * FROM {tabla}"
-        
+
         with self.db.get_connection() as conn:
             cursor = conn.cursor()
             try:
                 cursor.execute(query)
                 rows = cursor.fetchall()
+                
                 if rows:
                     # Devolvemos una lista de los objetos con los datos de cada fila aprovechando el constructor de la dataclass.
                     return [class_entity(**row) for row in rows]
+                else:
+                    return []
 
                 raise RegistroNoEncontrado(f"No existe ningún registro de {tabla}")
             

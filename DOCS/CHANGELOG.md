@@ -4,15 +4,49 @@ Todas las modificaciones notables al proyecto **Learn Lifting** se documentarán
 
 El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.0.0/), y este proyecto adhiere a versionado semántico.
 
-## [Unreleased] - (Roadmap a v1.0.0) 🆕
+## [Unreleased] - (Roadmap a v1.1.0 y beyond) 🆕
 ### Pendiente ⚠️
-- 📌 Implementación de popups modales para Edición de entidades.
-- 🧾 Generar las release notes completas en Markdown con la 1.0
+- 📌 Implementación de popups modales avanzados para Edición de múltiples entidades simultáneamente.
+- 🔔 Sistema de notificaciones en tiempo real para cambios en base de datos.
+- 📈 Estadísticas y reportes avanzados de asistencia y progreso de clientes.
+
+
+
+## 🎉 [1.0.0] - Release Estable
+### 🎊 HITO: Versión Estable Completada
+La versión 1.0.0 representa la culminación de todas las características esenciales para un gestor completo de gimnasio. Sistema completamente funcional con persistencia, UI interactiva, y manejo robusto de errores.
+
+### Características Completadas ✨
+- ✅ **CRUD Completo**: Creación, lectura, actualización y eliminación de clientes, rutinas e instructores con validación de integridad referencial.
+- ✅ **Gestión de Entidades**: Sistema de tres entidades principales (Cliente, Rutina, Instructor) con relaciones correctas y cálculo de ciclos de rotación.
+- ✅ **Persistencia SQLite**: Base de datos relacional con migraciones automáticas, soporte para constraints y rollback transaccional.
+- ✅ **UI Reactiva**: Interfaz de usuario con Flet, DataTable2 para visualización eficiente de datos, BottomSheet para modalidad.
+- ✅ **Formularios Dinámicos**: Generación automática de formularios a partir de reflexión de dataclasses, con validación por tipo y casteo.
+- ✅ **Edición de Registros**: Interfaz intuitiva de edición con precarga de valores, formulario que abre/cierra solo al éxito.
+- ✅ **Ordenamiento Interactivo**: Sorter ascendente/descendente en cualquier columna, manejo de tipos numéricos y dates.
+- ✅ **Eliminación Segura**: Confirmación de eliminación con validación referencial (no permite eliminar instructores/rutinas en uso).
+- ✅ **Theming Completo**: Sistema de temas claro/oscuro con persistencia en perfil del usuario.
+- ✅ **Gestión de Errores Robusta**: Manejo específico de excepciones del dominio con feedback visual al usuario.
+- ✅ **Carga de Catálogos**: Gestión inteligente de dropdowns con manejo multi-formato de fechas (DD-MM-YYYY y YYYY-MM-DD).
+- ✅ **Arquitectura DDD**: Separación clara entre Dominio, Aplicación, Infraestructura y Presentación.
+- ✅ **Suite de Tests**: Cobertura para Dominio y Servicios con pytest.
+
+### Correcciones Críticas 🐛
+- 🔧 **Bug de UPDATE**: Implementada distinción entre `columnas_reales` (estructura real de entidades) y `columnas_actuales` (estructura de DTO para visualización), asegurando que UPDATE usa la estructura correcta.
+- 🔧 **Manejo Multi-Formato de Fechas**: Parsing robusto que soporta tanto `YYYY-MM-DD` como `DD-MM-YYYY` para cargar catálogos correctamente.
+- 🔧 **Error Logging y Feedback**: Adición de snackbar explícito para errores de carga de catálogos, facilitando debugging.
+
+---
 
 ## 📦 [0.13.0]
 ### Añadido ✅
 - 📊 **Ordenamiento de columnas**: Implementado el ordenamiento ascendente/descendente en las columnas ordenables de la tabla. Al hacer clic en la cabecera, los datos se reordenan por ese campo (numérico o alfabético) (`src/GUI/tables.py`).
 - **Eliminación de entradas**: Función que abre diálogo de confirmación y ejecuta `servicio.eliminar()`, no permitiendo la eliminación de rutinas o instructores usados actualmente por algún cliente.
+- **Edición de entidades**: Interfaz intuitiva de edición con precarga automática de valores en formulario, diferenciación entre ADD y UPDATE, y cierre de formulario solo en caso de éxito (`src/GUI/controllers.py`, `src/GUI/views.py`).
+- **Validación sin cierre**: El formulario no cierra ante errores de validación; muestra mensajes de error y permite al usuario corregir (`src/GUI/controllers.py`).
+- **Botón Cancelar**: Botón explícito para descartar cambios, limpia el estado (`entidad_a_editar`) sin guardar (`src/GUI/views.py`).
+- **Fix crítico - Estructura de UPDATE**: Introducido campo `columnas_reales` en GymState para rastrear la estructura verdadera de entidades, diferenciándola de `columnas_actuales` (estructura de DTO). SendRegistro ahora selecciona el mapeo correcto basado en el tipo de operación (`src/GUI/controllers.py`, línea 458).
+- **Carga robusta de catálogos**: Implementado parsing multi-formato para fechas (intenta YYYY-MM-DD, luego DD-MM-YYYY, fallback al valor original) y error logging explícito con snackbar feedback para instructores y rutinas (`src/GUI/controllers.py`, líneas 374–410).
 
 ## 📦 [0.12.0]
 ### Añadido ✅

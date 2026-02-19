@@ -69,74 +69,81 @@ def AppView():
                     return False
             return True
 
-        def AddRegistro(e): # Agregamos 'e' por el evento del botón
+        def SendRegistroCallback(e):
+            """Delega a SendRegistro del controlador, detectando si es ADD o UPDATE."""
             entidad = ENTIDADES[state.tabla_actual]
-            tipos = get_type_hints(entidad)
+            es_actualizacion = state.entidad_a_editar is not None
             
-            # 1. Validación Previa
-            if not IsAllFieldsFilled(tipos):
-                for control in state.add_fields:
-                    es_fecha = tipos.get(control.data) == datetime
-                    # Usamos la referencia .input que inyectamos en controllers.py
-                    target = control.input if hasattr(control, "input") else control
-                    
-                    if not target.value:
-                        # Soporte para ambos tipos de error (TextField/Dropdown)
-                        if hasattr(target, "error"): target.error = "Requerido"
-                        if hasattr(target, "error_text"): target.error_text = "Requerido"
-                        target.border_color = Colors.INPUT_ERROR_BORDE
-                    target.update()
-                return # Cortamos la ejecución si falta algo
-
-            # 2. Recolección y Casteo
-            payload = {"id": 0} # ID placeholder para el constructor
-            for control in state.add_fields:
-                target = control.input if hasattr(control, "input") else control
-                nombre_campo = target.data
-                valor_raw = target.value
-                tipo_esperado = tipos[nombre_campo]
-
-                if not valor_raw:
-                    payload[nombre_campo] = None
-                elif tipo_esperado == datetime:
-                    # Guardamos en formato ISO (YYYY-MM-DD) para la DB
-                    payload[nombre_campo] = datetime.strptime(valor_raw, "%d-%m-%Y").strftime("%Y-%m-%d")
-                elif "int" in str(tipo_esperado) or tipo_esperado == int:
-                    payload[nombre_campo] = int(valor_raw)
-                else:
-                    payload[nombre_campo] = valor_raw
-
-            # 3. Envío al Servicio y Limpieza
-            try:
-                nueva_entidad = entidad(**payload)
-                servicio.buscar_todos(entidad) # Verificación rápida opcional
-                servicio.añadir(nueva_entidad) 
-                
-                # Éxito: Cerramos y Refrescamos
+            # Delegamos al controlador con el flag correcto
+            guardado_exitosamente = gym_controller.SendRegistro(servicio, entidad, es_actualizacion=es_actualizacion)
+            
+            # Cerrar el sheet SOLO si se guardó exitosamente
+            if guardado_exitosamente:
+                # Limpiar modo edición al guardar
+                gym_controller.state.entidad_a_editar = None
                 ft.context.page.pop_dialog()
-                gym_controller.GetTabla(servicio=servicio, entidad=entidad)
-                print(f"Guardado exitoso en {state.tabla_actual}")
-                
-            except Exception as ex:
-                print(f"Error al guardar en DB: {ex}")
 
-        Sheet = ft.BottomSheet(
-            on_dismiss=lambda e: ft.context.page.pop_dialog(),
-            scrollable=True,
-            content=ft.Container(
-                padding=30,
-                width=350,
-                content=ft.Column(
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    tight=True,
-                    scroll=ft.ScrollMode.ADAPTIVE,
-                    controls=[
-                        ft.Column(controls=state.add_fields),
-                        ft.Button("Agregar", on_click=AddRegistro),
-                    ],
+        def cancelar_formulario(e):
+            """Cancela y descarta el formulario (limpia edición si la hay)."""
+            gym_controller.state.entidad_a_editar = None
+            ft.context.page.pop_dialog()
+
+        def on_sheet_dismiss(e):
+            """Al cerrar el Sheet (por click afuera), solo limpiar sin cerrar nada más."""
+            gym_controller.state.entidad_a_editar = None
+
+        def crear_sheet():
+            """Crea un nuevo BottomSheet con los campos actuales (siempre fresco)."""
+            # Botón dinámico: cambia según si es ADD o UPDATE
+            boton_texto = "Guardar cambios" if state.entidad_a_editar else "Agregar"
+            
+            return ft.BottomSheet(
+                on_dismiss=lambda e: on_sheet_dismiss(e),
+                scrollable=True,
+                content=ft.Container(
+                    padding=30,
+                    width=350,
+                    content=ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        tight=True,
+                        scroll=ft.ScrollMode.ADAPTIVE,
+                        controls=[
+                            ft.Column(controls=state.add_fields),
+                            ft.Row(
+                                controls=[
+                                    ft.Button(boton_texto, on_click=SendRegistroCallback, expand=True),
+                                    ft.Button("Cancelar", on_click=cancelar_formulario, expand=True),
+                                ],
+                                spacing=10,
+                            ),
+                        ],
+                    ),
                 ),
-            ),
-        )
+            )
+
+        def abrir_sheet_edicion():
+            """Abre un nuevo Sheet cuando se inicia modo edición."""
+            if state.entidad_a_editar:
+                sheet = crear_sheet()
+                ft.context.page.show_dialog(sheet)
+
+        def abrir_sheet_add():
+            """Limpia el modo edición y abre un nuevo Sheet para agregar."""
+            entidad = ENTIDADES[state.tabla_actual]
+            # Regenerar campos sin precarga (limpia todos los valores a "")
+            gym_controller.GetTabla(servicio, entidad)
+            # Limpiar modo edición para que el formulario sea de ADD
+            gym_controller.state.entidad_a_editar = None
+            # Abrir un Sheet nuevo (fresco)
+            sheet = crear_sheet()
+            ft.context.page.show_dialog(sheet)
+
+        def use_effect_edicion():
+            """Hook reactivo: abre Sheet cuando entidad_a_editar cambia a no-None."""
+            if state.entidad_a_editar:
+                abrir_sheet_edicion()
+        
+        ft.use_effect(use_effect_edicion, [state.entidad_a_editar])
 
         # Callbacks para la tabla
         def call_qr(id_registro):
@@ -149,6 +156,7 @@ def AppView():
 
         def call_edit(id_registro):
             entidad_tipo = ENTIDADES[state.tabla_actual]
+            # preparar_edicion precarga los datos; use_effect detectará el cambio y abrirá el Sheet
             gym_controller.preparar_edicion(servicio, entidad_tipo, id_registro)
 
         return ft.Container(
@@ -170,7 +178,7 @@ def AppView():
                             icon=ft.Icons.ADD_CIRCLE_OUTLINE, 
                             icon_color=ft.Colors.GREEN, 
                             icon_size=40,
-                            on_click=lambda e: ft.context.page.show_dialog(Sheet),
+                            on_click=lambda e: abrir_sheet_add(),
                             ),
                         alignment=ft.Alignment.BOTTOM_RIGHT,
                     ) if state.columnas_actuales else ft.Container(),
