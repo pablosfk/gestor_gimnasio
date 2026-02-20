@@ -25,6 +25,18 @@ class ThemeManager:
     @classmethod
     def save_settings(cls, mode, color, color_name):
         path = cls._get_config_path()
+        # Preserve other keys in config.json (e.g., name/version) when saving theme
         settings = {"mode": mode, "color": color, "color_name": color_name}
-        with open(path, "w") as f:
-            json.dump(settings, f, indent=4)
+        try:
+            if os.path.exists(path):
+                with open(path, "r", encoding="utf-8") as f:
+                    existing = json.load(f)
+            else:
+                existing = {}
+        except Exception:
+            existing = {}
+
+        # Merge theme settings without removing other keys
+        existing.update(settings)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(existing, f, indent=4, ensure_ascii=False)

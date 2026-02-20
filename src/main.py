@@ -10,6 +10,7 @@ from GUI.views import AppView
 from GUI.contexts.service_context import GymServiceContext
 import os
 import tomllib
+import json
 from pathlib import Path
 
 #=============================================================================
@@ -17,15 +18,60 @@ from pathlib import Path
 #=============================================================================
 def get_project_metadata():
     # Buscamos el archivo pyproject.toml en la raíz del proyecto
-    toml_path = Path(__file__).parent.parent / "pyproject.toml" 
-    
+    toml_path = Path(__file__).parent.parent / "pyproject.toml"
+
+    # También construimos la ruta al config.json en APPDATA para sincronizar
+    app_data = os.getenv("APPDATA") or str(Path.home())
+    base_path = os.path.join(app_data, "LearnLifting")
+    if not os.path.exists(base_path):
+        try:
+            os.makedirs(base_path, exist_ok=True)
+        except Exception:
+            pass
+    config_json_path = os.path.join(base_path, "config.json")
+
+    # Si existe pyproject.toml, lo leemos y persistimos name/version en config.json
     try:
         with open(toml_path, "rb") as f:
             data = tomllib.load(f)
-            return data["project"]["name"], data["project"]["version"]
+            name = data.get("project", {}).get("name")
+            version = data.get("project", {}).get("version")
+            if name and version:
+                # Merge con config.json existente si corresponde
+                cfg = {}
+                if os.path.exists(config_json_path):
+                    try:
+                        with open(config_json_path, "r", encoding="utf-8") as jf:
+                            cfg = json.load(jf)
+                    except Exception:
+                        cfg = {}
+                cfg.update({"name": name, "version": version})
+                try:
+                    with open(config_json_path, "w", encoding="utf-8") as jf:
+                        json.dump(cfg, jf, ensure_ascii=False, indent=2)
+                except Exception:
+                    pass
+                return name, version
     except (FileNotFoundError, KeyError):
-        # Valores por defecto en caso de error
-        return "App", "0.0.0"
+        # No hay pyproject.toml o está malformado: fallback a config.json
+        pass
+    except Exception:
+        pass
+
+    # Fallback: leer config.json si existe
+    try:
+        if os.path.exists(config_json_path):
+            with open(config_json_path, "r", encoding="utf-8") as jf:
+                cfg = json.load(jf)
+                name = cfg.get("name")
+                version = cfg.get("version")
+                if name and version:
+                    return name, version
+    except Exception:
+        pass
+
+    # Valores por defecto si todo falla
+    return "App", "0.0.0"
 
 # Cargamos los datos
 APP_NAME, VERSION = get_project_metadata()
